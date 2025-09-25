@@ -14,13 +14,14 @@ function getRandomCell(exclude) {
   }
 }
 
-export default function SnakeGame({ onExit }) {
+export default function SnakeGame({ onExit, onScoreMilestone }) {
   const canvasRef = useRef(null)
   const [direction, setDirection] = useState({ x: 1, y: 0 })
   const [snake, setSnake] = useState([{ x: 4, y: 6 }, { x: 3, y: 6 }, { x: 2, y: 6 }])
   const [food, setFood] = useState(getRandomCell([{ x: 4, y: 6 }, { x: 3, y: 6 }, { x: 2, y: 6 }]))
   const [running, setRunning] = useState(true)
   const [score, setScore] = useState(0)
+  const [milestoneTriggered, setMilestoneTriggered] = useState(false)
 
   useEffect(() => {
     const element = canvasRef.current
@@ -60,7 +61,27 @@ export default function SnakeGame({ onExit }) {
     return () => clearInterval(id)
   }, [direction, food, running])
 
-  
+  // Fire once when score reaches 6
+  useEffect(() => {
+    if (!milestoneTriggered && score >= 6) {
+      setMilestoneTriggered(true)
+      console.log('🎉 Snake game milestone reached! Score:', score, 'Triggering swap...')
+      onScoreMilestone && onScoreMilestone(score)
+    }
+  }, [score, milestoneTriggered, onScoreMilestone])
+
+  const [showSwapNotification, setShowSwapNotification] = useState(false)
+
+  // Show swap notification when milestone is reached
+  useEffect(() => {
+    if (score >= 6 && !milestoneTriggered) {
+      setShowSwapNotification(true)
+      const timer = setTimeout(() => {
+        setShowSwapNotification(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [score, milestoneTriggered])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -96,6 +117,7 @@ export default function SnakeGame({ onExit }) {
     setFood(getRandomCell(base))
     setDirection({ x: 1, y: 0 })
     setScore(0)
+    setMilestoneTriggered(false)
     setRunning(true)
   }
 
@@ -126,6 +148,25 @@ export default function SnakeGame({ onExit }) {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, zIndex: 2 }}>
           <button onClick={restart}>Restart</button>
           <button onClick={onExit}>Exit</button>
+        </div>
+      )}
+      {showSwapNotification && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(0, 0, 0, 0.9)',
+          color: '#fff',
+          padding: '16px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          zIndex: 3,
+          textAlign: 'center',
+          border: '2px solid #00ff00'
+        }}>
+          🎉 6 Points Reached!<br />
+          🔄 Triggering swap...
         </div>
       )}
       <canvas
