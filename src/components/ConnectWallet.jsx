@@ -1,6 +1,5 @@
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
-import { walletConnect } from 'wagmi/connectors'
 
 export default function ConnectWallet({ onConnected }) {
   const { isConnected, address } = useAccount()
@@ -25,7 +24,6 @@ export default function ConnectWallet({ onConnected }) {
   }
 
   const injectedConnector = connectors.find((c) => c.id === injected().id) || connectors[0]
-  const wcConnector = connectors.find((c) => c.id === walletConnect({ projectId: '' }).id)
 
   return (
     <div style={{ display: 'contents' }}>
@@ -35,13 +33,7 @@ export default function ConnectWallet({ onConnected }) {
           <div className="label">Metamask</div>
         </button>
       )}
-      {wcConnector && (
-        <button className="app-icon" onClick={() => handleConnect(wcConnector)} title="WalletConnect">
-          <div className="snake-icon">📱</div>
-          <div className="label">WalletConnect</div>
-        </button>
-      )}
-      {!injectedConnector && !wcConnector && (
+      {!injectedConnector && (
         <button className="app-icon" disabled title={status}>
           <div className="snake-icon">⏳</div>
           <div className="label">Connecting…</div>
